@@ -1,0 +1,9 @@
+target
+Dockerfile
+README.md
+dump.rdb
+LICENSE
+.DS_Store
+.dockerignore
+.git
+.gitignore
