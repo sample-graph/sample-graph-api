@@ -15,18 +15,13 @@ use sample_graph_api::{
     structs::AppState,
 };
 
-static GENIUS_API_KEY_NAME: &str = "GENIUS_KEY";
-static REDIS_ADDR_NAME: &str = "REDIS_ADDR";
-static HOST_ADDR: &str = "0.0.0.0:8000";
-static REDIS_LOCAL_ADDR: &str = "redis://127.0.0.1:6379";
-
 #[tokio::main]
 async fn main() -> Result<()> {
     fmt::init();
 
     let genius_client =
-        Genius::new(var(GENIUS_API_KEY_NAME).context("Failed to fetch Genius API key")?);
-    let redis_client = Client::open(var(REDIS_ADDR_NAME).unwrap_or(REDIS_LOCAL_ADDR.to_string()))
+        Genius::new(var("GENIUS_KEY").context("Failed to fetch Genius API key")?);
+    let redis_client = Client::open(var("DATABASE_URL")?)
         .context("Failed to find Redis client")?;
     let shared_state = Arc::new(AppState::new(genius_client, redis_client));
 
@@ -46,7 +41,7 @@ async fn main() -> Result<()> {
         .route("/version", get(version))
         .layer(route_layers)
         .with_state(shared_state);
-    Server::bind(&HOST_ADDR.parse()?)
+    Server::bind(&"0.0.0.0:8000".parse()?)
         .serve(router.into_make_service())
         .await?;
 
