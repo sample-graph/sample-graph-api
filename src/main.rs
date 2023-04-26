@@ -5,9 +5,10 @@ use axum::{
     error_handling::HandleErrorLayer, http::StatusCode, routing::get, BoxError, Router, Server,
 };
 use genius_rust::Genius;
+use http::Method;
 use redis::Client;
 use tower::{buffer::BufferLayer, limit::rate::RateLimitLayer, ServiceBuilder};
-use tower_http::trace::TraceLayer;
+use tower_http::{cors::{Any, CorsLayer}, trace::TraceLayer};
 use tracing_subscriber::fmt;
 
 use sample_graph_api::{
@@ -24,7 +25,8 @@ async fn main() -> Result<()> {
     let redis_client = Client::open(var("DATABASE_URL")?)
         .context("Failed to find Redis client")?;
     let shared_state = Arc::new(AppState::new(genius_client, redis_client));
-
+    
+    let cors = CorsLayer::new().allow_methods(Method::GET).allow_origin(Any);
     let route_layers = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(|err: BoxError| async move {
             (
@@ -34,7 +36,8 @@ async fn main() -> Result<()> {
         }))
         .layer(BufferLayer::new(1024))
         .layer(RateLimitLayer::new(20, Duration::from_secs(60)))
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .layer(cors);
     let router = Router::new()
         .route("/search", get(search))
         .route("/graph/:song_id", get(graph))
