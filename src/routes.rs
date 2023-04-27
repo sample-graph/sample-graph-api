@@ -12,6 +12,7 @@ use axum::{
     response::{IntoResponse, Json, Response},
 };
 use petgraph::graph::DiGraph;
+use semver::Version;
 use serde_json::json;
 
 use crate::structs::{AppState, QueueItem, RelationshipType, SongData};
@@ -20,12 +21,15 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 static DEGREE: u8 = 2;
 
 /// Get the current version of the API.
-/// 
+///
 /// # Returns
-/// 
+///
 /// The API version.
 pub async fn version() -> Response {
-    Json(json!(VERSION)).into_response()
+    match Version::parse(VERSION) {
+        Ok(v) => Json(json!(v.major)).into_response(),
+        Err(e) => handle_error(e.into()),
+    }
 }
 
 /// Convert an error into a server response.

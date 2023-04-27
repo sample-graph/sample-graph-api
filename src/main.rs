@@ -8,7 +8,10 @@ use genius_rust::Genius;
 use http::Method;
 use redis::Client;
 use tower::{buffer::BufferLayer, limit::rate::RateLimitLayer, ServiceBuilder};
-use tower_http::{cors::{Any, CorsLayer}, trace::TraceLayer};
+use tower_http::{
+    cors::{Any, CorsLayer},
+    trace::TraceLayer,
+};
 use tracing_subscriber::fmt;
 
 use sample_graph_api::{
@@ -20,13 +23,17 @@ use sample_graph_api::{
 async fn main() -> Result<()> {
     fmt::init();
 
-    let genius_client =
-        Genius::new(var("GENIUS_KEY").context("Failed to fetch Genius API key")?);
-    let redis_client = Client::open(var("DATABASE_URL")?)
-        .context("Failed to find Redis client")?;
-    let shared_state = Arc::new(AppState::new(genius_client, redis_client));
-    
-    let cors = CorsLayer::new().allow_methods(Method::GET).allow_origin(Any);
+    let genius_client = Genius::new(var("GENIUS_KEY").context("Failed to fetch Genius API key")?);
+    let redis_client = Client::open(var("DATABASE_URL")?).context("Failed to find Redis client")?;
+    let shared_state = Arc::new(AppState::new(
+        genius_client,
+        redis_client,
+        var("REDIS_KEY_EXPIRY")?.parse::<usize>()?,
+    ));
+
+    let cors = CorsLayer::new()
+        .allow_methods(Method::GET)
+        .allow_origin(Any);
     let route_layers = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(|err: BoxError| async move {
             (
