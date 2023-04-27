@@ -1,7 +1,7 @@
 //! Functions for API routes.
 
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, VecDeque},
     sync::Arc,
 };
 
@@ -11,7 +11,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Json, Response},
 };
-use petgraph::graph::DiGraph;
+use petgraph::graph::{DiGraph, NodeIndex};
 use semver::Version;
 use serde_json::json;
 
@@ -115,27 +115,27 @@ async fn build_graph(
     degree: u8,
 ) -> Result<DiGraph<SongData, RelationshipType>> {
     let mut graph = DiGraph::new();
-    let mut visited: HashSet<u32> = HashSet::new();
+    let mut visited: HashMap<u32, NodeIndex> = HashMap::new();
     let mut queue = VecDeque::new();
 
-    visited.insert(center.id);
-    queue.push_back(QueueItem::new(0, center.id, graph.add_node(center)));
+    let center_id = center.id;
+    let center_idx = graph.add_node(center);
+    visited.insert(center_id, center_idx);
+    queue.push_back(QueueItem::new(0, center_id, center_idx));
 
     while let Some(current) = queue.pop_front() {
         if current.degree < degree {
             let next_degree = current.degree + 1;
             for relationship in state.relationships(current.song_id).await? {
-                if !visited.contains(&relationship.song.id) {
-                    let song_id = relationship.song.id;
-                    let next_index = graph.add_node(relationship.song);
-                    graph.add_edge(current.index, next_index, relationship.relationship_type);
-                    graph.add_edge(
-                        next_index,
-                        current.index,
-                        relationship.relationship_type.invert(),
-                    );
+                let song_id = relationship.song.id;
+                if !visited.contains_key(&song_id) {
+                    let next_idx = *visited
+                        .get(&relationship.song.id)
+                        .unwrap_or(&graph.add_node(relationship.song));
+                    graph.add_edge(current.index, next_idx, relationship.relationship_type);
+                    visited.insert(song_id, next_idx);
                     if next_degree < degree {
-                        queue.push_back(QueueItem::new(next_degree, song_id, next_index));
+                        queue.push_back(QueueItem::new(next_degree, song_id, next_idx));
                     }
                 }
             }
