@@ -214,6 +214,8 @@ pub struct AppState {
     pub genius: Genius,
     /// Redis client.
     pub redis: Client,
+    /// Redis key expiry time.
+    pub key_expiry: usize,
 }
 
 impl AppState {
@@ -223,12 +225,17 @@ impl AppState {
     ///
     /// * `genius` - Genius API client.
     /// * `redis` - Redis client.
+    /// * `key_expiry` - Redis key expiry time.
     ///
     /// # Returns
     ///
     /// The application state.
-    pub fn new(genius: Genius, redis: Client) -> Self {
-        Self { genius, redis }
+    pub fn new(genius: Genius, redis: Client, key_expiry: usize) -> Self {
+        Self {
+            genius,
+            redis,
+            key_expiry,
+        }
     }
 
     /// Pull song data associated with a Genius ID.
@@ -254,6 +261,7 @@ impl AppState {
                 .await
                 .map(SongData::from)?;
             con.set(&key, to_vec(&song)?)?;
+            con.expire(&key, self.key_expiry)?;
             Ok(song)
         }
     }
@@ -287,6 +295,7 @@ impl AppState {
                 }
             }
             con.set(&key, to_vec(&relationships)?)?;
+            con.expire(&key, self.key_expiry)?;
             Ok(relationships)
         }
     }
