@@ -15,7 +15,7 @@ use petgraph::graph::{DiGraph, NodeIndex};
 use semver::Version;
 use serde_json::json;
 
-use crate::structs::{AppState, QueueItem, RelationshipType, SongData};
+use crate::structs::{AppState, GraphNode, QueueItem, RelationshipType, SongData};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 static DEGREE: u8 = 2;
@@ -113,13 +113,13 @@ async fn build_graph(
     state: Arc<AppState>,
     center: SongData,
     degree: u8,
-) -> Result<DiGraph<SongData, RelationshipType>> {
+) -> Result<DiGraph<GraphNode, RelationshipType>> {
     let mut graph = DiGraph::new();
     let mut visited: HashMap<u32, NodeIndex> = HashMap::new();
     let mut queue = VecDeque::new();
 
     let center_id = center.id;
-    let center_idx = graph.add_node(center);
+    let center_idx = graph.add_node(GraphNode::new(0, center));
     visited.insert(center_id, center_idx);
     queue.push_back(QueueItem::new(0, center_id, center_idx));
 
@@ -131,7 +131,7 @@ async fn build_graph(
                 if !visited.contains_key(&song_id) {
                     let next_idx = *visited
                         .get(&relationship.song.id)
-                        .unwrap_or(&graph.add_node(relationship.song));
+                        .unwrap_or(&graph.add_node(GraphNode::new(next_degree, relationship.song)));
                     graph.add_edge(current.index, next_idx, relationship.relationship_type);
                     visited.insert(song_id, next_idx);
                     if next_degree < degree {
