@@ -124,6 +124,7 @@ async fn build_graph(
     queue.push_back(QueueItem::new(0, center_id, center_idx));
 
     while let Some(current) = queue.pop_front() {
+        visited.insert(current.song_id, current.index);
         if current.degree < degree {
             let next_degree = current.degree + 1;
             for relationship in state.relationships(current.song_id).await? {
@@ -133,7 +134,6 @@ async fn build_graph(
                         .get(&relationship.song.id)
                         .unwrap_or(&graph.add_node(GraphNode::new(next_degree, relationship.song)));
                     graph.add_edge(current.index, next_idx, relationship.relationship_type);
-                    visited.insert(song_id, next_idx);
                     if next_degree < degree {
                         queue.push_back(QueueItem::new(next_degree, song_id, next_idx));
                     }
