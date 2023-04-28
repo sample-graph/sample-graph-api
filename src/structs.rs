@@ -70,7 +70,10 @@ impl RelationshipType {
     ///
     /// Whether the relationship type is relevant.
     pub fn is_relevant(&self) -> bool {
-        matches!(self, Self::SampledIn | Self::Samples)
+        matches!(
+            self,
+            Self::SampledIn | Self::Samples | Self::Interpolates | Self::InterpolatedBy
+        )
     }
 
     /// Inverts the relationship type.
