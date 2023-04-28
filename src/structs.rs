@@ -4,6 +4,7 @@ use std::fmt::Debug;
 
 use anyhow::Result;
 use genius_rust::{search::Hit, song::Song as GeniusSong, Genius};
+use mockall::automock;
 use petgraph::graph::NodeIndex;
 use redis::{Client, Commands};
 use serde::{Deserialize, Serialize};
@@ -235,6 +236,7 @@ pub struct AppState {
     pub key_expiry: usize,
 }
 
+#[automock]
 impl AppState {
     /// Create a new shared application state.
     ///

@@ -13,6 +13,7 @@ anyhow = "1.0.70"
 axum = "0.6.16"
 genius-rust = "0.1.1"
 http = "0.2.9"
+mockall = "0.11.4"
 petgraph ={ version = "0.6.3", features = ["serde-1"] }
 redis = { version = "0.23.0", features = ["tls"] }
 semver = "1.0.17"
@@ -22,3 +23,6 @@ tokio = { version = "1.27.0", features = ["full"] }
 tower = { version = "0.4.13", features = ["buffer", "limit"] }
 tower-http = { version = "0.4.0", features = ["cors", "trace"] }
 tracing-subscriber = "0.3.17"
+
+[dev-dependencies]
+rstest = "0.17.0"
