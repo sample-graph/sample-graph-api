@@ -208,6 +208,22 @@ impl QueueItem {
     }
 }
 
+/// Node data in a graph.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct GraphNode {
+    /// Degree of separation from the center.
+    pub degree: u8,
+    /// Genius song data.
+    pub song: SongData,
+}
+
+impl GraphNode {
+    ///
+    pub fn new(degree: u8, song: SongData) -> Self {
+        Self { degree, song }
+    }
+}
+
 /// Shared application state.
 pub struct AppState {
     /// Genius API client.
