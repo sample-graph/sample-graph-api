@@ -11,6 +11,7 @@ use serde_json::{from_slice, to_vec};
 
 /// Possible relationships between songs.
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize, Eq, Hash)]
+#[serde(rename_all = "snake_case")]
 pub enum RelationshipType {
     /// Samples another song.
     Samples,
