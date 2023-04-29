@@ -3,6 +3,7 @@
 use std::fmt::Debug;
 
 use genius_rust::{search::Hit, song::Song as GeniusSong};
+use petgraph::graph::NodeIndex;
 use serde::{Deserialize, Serialize};
 
 /// Possible relationships between songs.
@@ -173,6 +174,63 @@ impl Relationship {
             relationship_type,
             song,
         }
+    }
+}
+
+/// An item in a graph search queue.
+#[derive(Debug, Copy, Clone)]
+pub struct QueueItem {
+    /// The degree of separation from the graph center.
+    pub degree: u8,
+    /// The Genius ID of the queued song.
+    pub song_id: u32,
+    /// The graph node index of the queued song.
+    pub index: NodeIndex,
+}
+
+impl QueueItem {
+    /// Create a queue item.
+    ///
+    /// # Args
+    ///
+    /// * `degree` - The degree of separation from the graph center.
+    /// * `song_id` - The Genius ID of the queued song.
+    /// * `index` - The graph node index of the queued song.
+    ///
+    /// # Returns
+    ///
+    /// The queue item.
+    pub fn new(degree: u8, song_id: u32, index: NodeIndex) -> Self {
+        Self {
+            degree,
+            index,
+            song_id,
+        }
+    }
+}
+
+/// Node data in a graph.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct GraphNode {
+    /// Degree of separation from the center.
+    pub degree: u8,
+    /// Genius song data.
+    pub song: SongData,
+}
+
+impl GraphNode {
+    /// Create a new graph node.
+    ///
+    /// # Args
+    ///
+    /// * `degree` - Degree of separation from the center.
+    /// * `song` - Genius song data.
+    ///
+    /// # Returns
+    ///
+    /// The graph node.
+    pub fn new(degree: u8, song: SongData) -> Self {
+        Self { degree, song }
     }
 }
 
