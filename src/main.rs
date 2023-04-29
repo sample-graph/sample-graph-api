@@ -1,11 +1,8 @@
-use std::{env::var, sync::Arc, time::Duration};
+use std::{env::var, error::Error, sync::Arc, time::Duration};
 
-use anyhow::{Context, Result};
-use axum::{
-    error_handling::HandleErrorLayer, http::StatusCode, routing::get, BoxError, Router, Server,
-};
+use axum::{error_handling::HandleErrorLayer, routing::get, BoxError, Router, Server};
 use genius_rust::Genius;
-use http::Method;
+use http::{Method, StatusCode};
 use redis::Client;
 use tower::{buffer::BufferLayer, limit::rate::RateLimitLayer, ServiceBuilder};
 use tower_http::{
@@ -16,15 +13,15 @@ use tracing_subscriber::fmt;
 
 use sample_graph_api::{
     routes::{graph, search, version},
-    structs::AppState,
+    AppState,
 };
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn Error>> {
     fmt::init();
 
-    let genius_client = Genius::new(var("GENIUS_KEY").context("Failed to fetch Genius API key")?);
-    let redis_client = Client::open(var("DATABASE_URL")?).context("Failed to find Redis client")?;
+    let genius_client = Genius::new(var("GENIUS_KEY")?);
+    let redis_client = Client::open(var("DATABASE_URL")?)?;
     let shared_state = Arc::new(AppState::new(
         genius_client,
         redis_client,
@@ -36,10 +33,7 @@ async fn main() -> Result<()> {
         .allow_origin(Any);
     let route_layers = ServiceBuilder::new()
         .layer(HandleErrorLayer::new(|err: BoxError| async move {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Unhandled error: {}", err),
-            )
+            (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
         }))
         .layer(BufferLayer::new(1024))
         .layer(RateLimitLayer::new(20, Duration::from_secs(60)))
