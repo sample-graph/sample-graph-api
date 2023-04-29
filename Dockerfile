@@ -11,4 +11,4 @@ FROM debian:buster-slim as release
 RUN apt-get update && apt-get install -y ca-certificates tzdata && rm -rf /var/lib/apt/lists/*
 WORKDIR /usr/sample-graph-api
 COPY --from=build /usr/sample-graph-api/target/release/sample-graph-api sample-graph-api
-CMD ["./sample-graph-api"]
+CMD ["./sample-graph-api", "0.0.0.0", "8000"]

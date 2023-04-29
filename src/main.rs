@@ -1,6 +1,7 @@
 use std::{env::var, error::Error, sync::Arc, time::Duration};
 
 use axum::{error_handling::HandleErrorLayer, routing::get, BoxError, Router, Server};
+use clap::Parser;
 use genius_rust::Genius;
 use http::{Method, StatusCode};
 use redis::Client;
@@ -11,14 +12,13 @@ use tower_http::{
 };
 use tracing_subscriber::fmt;
 
-use sample_graph_api::{
-    routes::{graph, search, version},
-    AppState,
-};
+use sample_graph_api::{graph, search, version, AppState, Args};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     fmt::init();
+
+    let args = Args::parse();
 
     let genius_client = Genius::new(var("GENIUS_KEY")?);
     let redis_client = Client::open(var("DATABASE_URL")?)?;
@@ -45,7 +45,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/version", get(version))
         .layer(route_layers)
         .with_state(shared_state);
-    Server::bind(&"0.0.0.0:8000".parse()?)
+    Server::bind(&args.address().parse()?)
         .serve(router.into_make_service())
         .await?;
 
