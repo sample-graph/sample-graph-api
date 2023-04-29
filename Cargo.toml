@@ -1,6 +1,6 @@
 [package]
 name = "sample-graph-api"
-version = "0.7.1"
+version = "0.8.0"
 edition = "2021"
 authors = ["Robert Yin <bobertoin@gmail.com>"]
 
@@ -11,9 +11,9 @@ codegen-units = 1
 [dependencies]
 async-trait = "0.1.68"
 axum = "0.6.16"
+clap = { version = "4.2.5", features = ["derive"] }
 genius-rust = "0.1.1"
 http = "0.2.9"
-mockall = "0.11.4"
 petgraph ={ version = "0.6.3", features = ["serde-1"] }
 redis = { version = "0.23.0", features = ["tls"] }
 semver = "1.0.17"

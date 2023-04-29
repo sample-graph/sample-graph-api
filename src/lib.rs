@@ -10,6 +10,8 @@
     unused_qualifications
 )]
 
+pub mod cli;
+pub use cli::*;
 pub mod state;
 pub use state::*;
 pub mod routes;

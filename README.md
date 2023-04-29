@@ -25,12 +25,12 @@ Then run the following:
 ```console
 foo@bar$ export <ENVIRONMENT VARIABLES HERE>
 foo@bar$ redis-server
-foo@bar$ cargo run
+foo@bar$ cargo run 0.0.0.0 8000
 ```
 
 ### Docker 🐳
 
-Install the following:
+Install the following (in addition to the local requirements):
 
 - [Docker](https://docs.docker.com/engine/install)
 
