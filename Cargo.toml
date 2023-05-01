@@ -15,10 +15,11 @@ clap = { version = "4.2.5", features = ["derive"] }
 genius-rust = "0.1.1"
 http = "0.2.9"
 petgraph ={ version = "0.6.3", features = ["serde-1"] }
-redis = { version = "0.23.0", features = ["tls"] }
 semver = "1.0.17"
 serde = { version = "1.0.160", features = ["derive"] }
 serde_json = "1.0.96"
+redis = { version = "0.23.0", features = ["tls"] }
+redis-test = "0.2.0"
 thiserror = "1.0.40"
 tokio = { version = "1.27.0", features = ["full"] }
 tower = { version = "0.4.13", features = ["buffer", "limit"] }
@@ -26,5 +27,5 @@ tower-http = { version = "0.4.0", features = ["cors", "trace"] }
 tracing-subscriber = "0.3.17"
 
 [dev-dependencies]
-redis-test = "0.2.0"
+async-std = { version = "1.12.0", features = ["attributes"] }
 rstest = "0.17.0"
