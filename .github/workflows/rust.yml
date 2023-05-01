@@ -20,5 +20,8 @@ jobs:
       run: cargo fmt -- --check --verbose
     - name: Clippy lint
       run: cargo clippy -- --verbose -D warnings
-    - name: Run tests
-      run: cargo test --verbose
+    - name: Run test w/ coverage
+      uses: actions-rs/tarpaulin@v0.1
+      with:
+        version: "0.22.0"
+        out-type: "Stdout"

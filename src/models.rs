@@ -71,30 +71,6 @@ impl RelationshipType {
             Self::SampledIn | Self::Samples | Self::Interpolates | Self::InterpolatedBy
         )
     }
-
-    /// Inverts the relationship type.
-    /// Unknown relationships stay unknown.
-    ///
-    /// # Returns
-    ///
-    /// The inverted relationship type.
-    pub fn invert(&self) -> Self {
-        match self {
-            Self::SampledIn => Self::Samples,
-            Self::Samples => Self::SampledIn,
-            Self::Interpolates => Self::InterpolatedBy,
-            Self::InterpolatedBy => Self::Interpolates,
-            Self::CoverOf => Self::CoveredBy,
-            Self::CoveredBy => Self::CoverOf,
-            Self::RemixOf => Self::RemixedBy,
-            Self::RemixedBy => Self::RemixOf,
-            Self::LiveVersionOf => Self::PerformedLiveAs,
-            Self::PerformedLiveAs => Self::LiveVersionOf,
-            Self::TranslationOf => Self::Translations,
-            Self::Translations => Self::TranslationOf,
-            Self::Unknown => Self::Unknown,
-        }
-    }
 }
 
 /// Relevant song data.
@@ -236,10 +212,113 @@ impl GraphNode {
 
 #[cfg(test)]
 mod tests {
+    use genius_rust::{
+        search::Hit,
+        song::{Artist, Song, SongStatus},
+    };
     use rstest::*;
     use serde_json::{from_value, json, to_value};
 
     use super::*;
+
+    #[fixture]
+    fn song() -> Song {
+        Song {
+            annotation_count: 0,
+            api_path: "".into(),
+            apple_music_id: None,
+            apple_music_player_url: None,
+            comment_count: None,
+            custom_header_image_url: None,
+            custom_song_art_image_url: None,
+            description: None,
+            description_preview: None,
+            embed_content: None,
+            facebook_share_message_without_url: None,
+            featured_video: None,
+            full_title: "".into(),
+            has_instagram_reel_annotations: None,
+            header_image_thumbnail_url: "".into(),
+            header_image_url: "".into(),
+            hidden: None,
+            id: 12345,
+            instrumental: None,
+            is_music: None,
+            lyrics: None,
+            lyrics_owner_id: 0,
+            lyrics_state: "".into(),
+            lyrics_updated_at: None,
+            path: "".into(),
+            pending_lyrics_edits_count: None,
+            published: None,
+            pusher_channel: None,
+            release_date_components: None,
+            pyongs_count: None,
+            recording_location: None,
+            release_date: None,
+            release_date_for_display: None,
+            share_url: None,
+            song_art_image_thumbnail_url: "".into(),
+            song_art_image_url: "".into(),
+            soundcloud_url: None,
+            spotify_uuid: None,
+            stats: SongStatus {
+                accepted_annotations: None,
+                contributors: None,
+                iq_earners: None,
+                transcribers: None,
+                verified_annotations: None,
+                unreviewed_annotations: 0,
+                hot: false,
+                pageviews: None,
+            },
+            title: "".into(),
+            title_with_featured: "Foobar".into(),
+            tracking_paths: None,
+            twitter_share_message: None,
+            twitter_share_message_without_url: None,
+            updated_by_human_at: None,
+            url: "".into(),
+            viewable_by_roles: None,
+            youtube_start: None,
+            youtube_url: None,
+            current_user_metadata: None,
+            primary_artist: Artist {
+                api_path: "".into(),
+                header_image_url: "".into(),
+                id: 0,
+                image_url: "".into(),
+                index_character: None,
+                is_meme_verified: false,
+                is_verified: false,
+                name: "Barfoo".into(),
+                slug: None,
+                url: "".into(),
+                iq: None,
+            },
+            album: None,
+            albums: None,
+            custom_performances: None,
+            description_annotation: None,
+            featured_artists: None,
+            media: None,
+            producer_artists: None,
+            song_relationships: None,
+            verified_annotations_by: None,
+            verified_contributors: None,
+            verified_lyrics_by: None,
+            writer_artists: None,
+        }
+    }
+
+    #[fixture]
+    fn hit(song: Song) -> Hit {
+        Hit {
+            hit_type: "".into(),
+            index: "".into(),
+            result: song,
+        }
+    }
 
     #[rstest]
     #[case("samples", RelationshipType::Samples)]
@@ -329,6 +408,22 @@ mod tests {
     }
 
     #[rstest]
+    fn test_song_data_from_song(song: Song) {
+        let result = SongData::from(song);
+        assert_eq!(result.id, 12345);
+        assert_eq!(result.title, "Foobar");
+        assert_eq!(result.artist_name, "Barfoo");
+    }
+
+    #[rstest]
+    fn test_song_data_from_hit(hit: Hit) {
+        let result = SongData::from(hit);
+        assert_eq!(result.id, 12345);
+        assert_eq!(result.title, "Foobar");
+        assert_eq!(result.artist_name, "Barfoo");
+    }
+
+    #[rstest]
     fn test_relationship_new(
         #[values(u32::MIN, u32::MAX, 0, 2539091)] id: u32,
         #[values("foobar", "Sillyman!", "")] title: String,
@@ -344,5 +439,23 @@ mod tests {
         let result = Relationship::new(relationship_type, song.clone());
         assert_eq!(result.relationship_type, relationship_type);
         assert_eq!(result.song, song);
+    }
+
+    #[rstest]
+    fn test_queue_item_new() {
+        let result = QueueItem::new(255, 12345, NodeIndex::default());
+        assert_eq!(result.degree, 255);
+        assert_eq!(result.song_id, 12345);
+        assert_eq!(result.index, NodeIndex::default());
+    }
+
+    #[rstest]
+    fn test_graph_node_new() {
+        let result = GraphNode::new(255, SongData::new(12345, "Foobar".into(), "Barfoo".into()));
+        assert_eq!(result.degree, 255);
+        assert_eq!(
+            result.song,
+            SongData::new(12345, "Foobar".into(), "Barfoo".into())
+        );
     }
 }

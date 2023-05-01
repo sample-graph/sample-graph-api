@@ -7,10 +7,11 @@ use axum::{
     response::Json,
 };
 use http::StatusCode;
+use redis::ConnectionLike;
 use semver::Version;
 use serde_json::{json, Value};
 
-use crate::{AppState, State};
+use crate::State;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 static DEGREE: u8 = 2;
@@ -36,9 +37,10 @@ pub async fn version() -> Result<Json<Value>, (StatusCode, String)> {
 /// # Returns
 ///
 /// A server response.
-pub async fn search(
+#[cfg(not(tarpaulin_include))]
+pub async fn search<C: ConnectionLike + Send>(
     Query(params): Query<HashMap<String, String>>,
-    AxumState(state): AxumState<Arc<AppState>>,
+    AxumState(state): AxumState<Arc<impl State<C> + Sync>>,
 ) -> Result<Json<Value>, (StatusCode, String)> {
     let query = params.get("q").map(|s| s.as_str()).unwrap_or("");
     Ok(Json(json!(state.search(query).await?)))
@@ -55,10 +57,11 @@ pub async fn search(
 /// # Returns
 ///
 /// A server response.
-pub async fn graph(
+#[cfg(not(tarpaulin_include))]
+pub async fn graph<C: ConnectionLike + Send>(
     Query(params): Query<HashMap<String, String>>,
     Path(song_id): Path<u32>,
-    AxumState(state): AxumState<Arc<AppState>>,
+    AxumState(state): AxumState<Arc<impl State<C> + Sync>>,
 ) -> Result<Json<Value>, (StatusCode, String)> {
     let degree: u8 = params
         .get("degree")
