@@ -14,6 +14,7 @@ use tracing_subscriber::fmt;
 
 use sample_graph_api::{graph, search, version, AppState, Args};
 
+#[cfg(not(tarpaulin_include))]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     fmt::init();
